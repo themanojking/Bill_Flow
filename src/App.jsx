@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Routes,
@@ -16,19 +15,26 @@ import AppLayout from "./components/AppLayout";
 import BarcodeScanner from "./components/BarcodeScanner";
 
 import Dashboard from "./pages/Dashboard";
+import TotalSales from "./pages/TotalSales";
+import Products from "./pages/Products";
+import SalesHistory from "./pages/SalesHistory";
+import Customers from "./pages/Customers";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 import "./App.css";
 
-const PlaceholderPage = ({ title }) => (
-  <div className="content-card">
-    <h2>{title}</h2>
-    <p>This section will be developed in the next stages.</p>
-  </div>
-);
-
 const NewBill = () => (
-  <div className="content-card">
-    <h2>Create New Bill</h2>
-    <BarcodeScanner />
+  <div className="new-bill-page">
+    <div className="page-header-row">
+      <div>
+        <span className="page-tag">SCANNER & POS</span>
+        <h2>Create New Bill</h2>
+        <p className="page-subtext">Scan product barcodes or enter item codes to bill</p>
+      </div>
+    </div>
+    <div className="scanner-card-wrap">
+      <BarcodeScanner />
+    </div>
   </div>
 );
 
@@ -68,12 +74,12 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/new-bill" element={<NewBill />} />
-          <Route path="/total-sales" element={<PlaceholderPage title="Total Sales" />} />
-          <Route path="/products" element={<PlaceholderPage title="Products" />} />
-          <Route path="/sales-history" element={<PlaceholderPage title="Sales History" />} />
-          <Route path="/customers" element={<PlaceholderPage title="Customers" />} />
-          <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
-          <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+          <Route path="/total-sales" element={<TotalSales />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/sales-history" element={<SalesHistory />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
 
