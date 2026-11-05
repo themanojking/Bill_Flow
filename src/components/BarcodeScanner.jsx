@@ -38,8 +38,8 @@ function BarcodeScanner() {
 
             try {
               const response = await axios.get(
-                `http://localhost:5000/api/products/${encodeURIComponent(scannedBarcode)}`
-              );
+  `${import.meta.env.VITE_API_URL}/products/${encodeURIComponent(scannedBarcode)}`
+);
 
               setProduct(response.data.product);
             } catch (apiError) {
