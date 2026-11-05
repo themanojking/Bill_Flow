@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "../authentication/AuthContext";
+import { useCart } from "../context/CartContext";
 
 const Products = () => {
   const { user } = useAuth();
+  const { addToCart, setIsCartOpen } = useCart();
   const navigate = useNavigate();
   const outletContext = useOutletContext();
   const openScanner = outletContext?.openScanner;
@@ -113,9 +115,16 @@ const Products = () => {
               <span className="product-price">₹{item.mrp.toFixed(2)}</span>
               <button
                 className="add-to-bill-btn"
-                onClick={() => navigate("/new-bill")}
+                onClick={() => {
+                  addToCart({
+                    barcode: item.barcode,
+                    productName: item.name,
+                    brand: item.brand,
+                    mrp: item.mrp,
+                  }, 1);
+                }}
               >
-                + Add to Bill
+                + Add to Cart
               </button>
             </div>
           </div>

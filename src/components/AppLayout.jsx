@@ -3,6 +3,8 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import CameraScannerModal from "./CameraScannerModal";
+import CartDrawer from "./CartDrawer";
+import ReceiptModal from "./ReceiptModal";
 
 const AppLayout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -24,6 +26,12 @@ const AppLayout = () => {
         isOpen={scannerOpen}
         onClose={() => setScannerOpen(false)}
       />
+
+      {/* Cart Drawer - displays scanned items, qty controls & checkout */}
+      <CartDrawer onOpenScanner={() => setScannerOpen(true)} />
+
+      {/* Completed Bill Receipt Modal */}
+      <ReceiptModal />
 
       <main className="mobile-content">
         <Outlet context={{ openScanner: () => setScannerOpen(true) }} />

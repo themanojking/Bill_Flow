@@ -13,6 +13,7 @@ import Register from "./authentication/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppLayout from "./components/AppLayout";
 import BarcodeScanner from "./components/BarcodeScanner";
+import LoadingScreen from "./components/LoadingScreen";
 
 import Dashboard from "./pages/Dashboard";
 import TotalSales from "./pages/TotalSales";
@@ -43,7 +44,7 @@ function App() {
   const navigate = useNavigate();
 
   if (loading) {
-    return <div className="loading-screen">Loading Bill Flow...</div>;
+    return <LoadingScreen message="Loading Bill Flow..." />;
   }
 
   return (

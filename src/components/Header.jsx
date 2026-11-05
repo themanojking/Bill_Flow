@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../authentication/AuthContext";
+import { useCart } from "../context/CartContext";
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
+  const { cartCount, cartTotal, setIsCartOpen, justAddedBarcode } = useCart();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -56,6 +58,32 @@ const Header = ({ onMenuClick }) => {
       </div>
 
       <div className="header-actions">
+        {/* Cart Icon Button with Counter Badge */}
+        <button
+          className={`cart-header-btn ${cartCount > 0 ? "has-items" : ""} ${justAddedBarcode ? "cart-bounce" : ""}`}
+          onClick={() => setIsCartOpen(true)}
+          aria-label={`Open shopping cart with ${cartCount} items`}
+          title={`Cart: ${cartCount} items (₹${cartTotal.toFixed(2)})`}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          {cartCount > 0 && (
+            <span className="cart-header-badge">{cartCount}</span>
+          )}
+        </button>
+
         {/* User Profile avatar & Dropdown */}
         <div className="profile-wrapper" ref={profileRef}>
           <button

@@ -1,8 +1,10 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import axios from "axios";
+import { useCart } from "../context/CartContext";
 
 const CameraScannerModal = ({ isOpen, onClose }) => {
+  const { addToCart, cartCount, cartTotal, setIsCartOpen } = useCart();
   const videoRef = useRef(null);
   const controlsRef = useRef(null);
   const processingRef = useRef(false);
@@ -76,7 +78,11 @@ const CameraScannerModal = ({ isOpen, onClose }) => {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/products/${encodeURIComponent(code)}`
       );
-      setProduct(response.data.product);
+      const fetchedProduct = response.data.product;
+      setProduct(fetchedProduct);
+      if (fetchedProduct) {
+        addToCart(fetchedProduct, 1);
+      }
     } catch (err) {
       console.error("Product lookup error:", err);
       setCameraError(
@@ -178,8 +184,12 @@ const CameraScannerModal = ({ isOpen, onClose }) => {
         )}/mrp`,
         { mrp: Number(mrpInput) }
       );
-      setProduct(response.data.product);
+      const updatedProduct = response.data.product;
+      setProduct(updatedProduct);
       setMrpInput("");
+      if (updatedProduct) {
+        addToCart(updatedProduct, 0);
+      }
     } catch (err) {
       setCameraError(err.response?.data?.message || "Failed to update MRP");
     } finally {
@@ -275,7 +285,7 @@ const CameraScannerModal = ({ isOpen, onClose }) => {
           {product && (
             <div className="scanned-product-result">
               <div className="scanned-success-badge">
-                <span>✓</span> Scanned Successfully
+                <span>✓</span> Added to Cart • Basket: {cartCount} items (₹{cartTotal.toFixed(2)})
               </div>
 
               <div className="scanned-product-card">
@@ -329,13 +339,25 @@ const CameraScannerModal = ({ isOpen, onClose }) => {
               </div>
 
               {/* Action Buttons */}
-              <div className="scanned-actions-row">
-                <button className="scan-again-btn" onClick={handleScanNext}>
-                  ⚡ Scan Next Item
+              <div className="scanned-actions-column">
+                <button
+                  className="cart-checkout-direct-btn"
+                  onClick={() => {
+                    onClose();
+                    setIsCartOpen(true);
+                  }}
+                >
+                  🛒 View Cart ({cartCount}) • ₹{cartTotal.toFixed(2)} →
                 </button>
-                <button className="done-btn" onClick={onClose}>
-                  Done
-                </button>
+
+                <div className="scanned-actions-row">
+                  <button className="scan-again-btn" onClick={handleScanNext}>
+                    ⚡ Scan Next Item
+                  </button>
+                  <button className="done-btn" onClick={onClose}>
+                    Done
+                  </button>
+                </div>
               </div>
             </div>
           )}

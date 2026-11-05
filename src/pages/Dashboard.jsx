@@ -1,13 +1,14 @@
-
 import React from "react";
 import { useAuth } from "../authentication/AuthContext";
 import { useNavigate, useOutletContext } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const outletContext = useOutletContext();
   const openScanner = outletContext?.openScanner;
+  const { todayTotalSales, todayBillsCount, cartCount, cartTotal, setIsCartOpen } = useCart();
 
   return (
     <div className="dashboard-page">
@@ -17,6 +18,29 @@ const Dashboard = () => {
         <p>{user?.shopName || "Your Shop"}</p>
       </div>
 
+      {/* Active Cart Banner (Appears when items are scanned) */}
+      {cartCount > 0 && (
+        <div
+          className="active-cart-banner"
+          onClick={() => setIsCartOpen(true)}
+          role="button"
+          tabIndex={0}
+        >
+          <div className="active-cart-left">
+            <span className="active-cart-icon">🛒</span>
+            <div>
+              <strong>Active Basket: {cartCount} items</strong>
+              <small>Tap to adjust quantities & checkout</small>
+            </div>
+          </div>
+          <div className="active-cart-right">
+            <span className="active-cart-total">₹{cartTotal.toFixed(2)}</span>
+            <span className="active-cart-arrow">→</span>
+          </div>
+        </div>
+      )}
+
+      {/* Today's Sales Card with live update from checkout */}
       <section
         className="today-sales-card"
         onClick={() => navigate("/total-sales")}
@@ -31,8 +55,8 @@ const Dashboard = () => {
           <div className="sales-card-icon">₹</div>
         </div>
 
-        <h2>₹0.00</h2>
-        <p>Sales collected today</p>
+        <h2>₹{todayTotalSales.toFixed(2)}</h2>
+        <p>{todayBillsCount} bill{todayBillsCount === 1 ? "" : "s"} collected today</p>
       </section>
 
       <section className="quick-action-section">
