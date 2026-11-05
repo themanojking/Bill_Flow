@@ -1,7 +1,8 @@
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import axios from "axios";
+import "./BarcodeScanner.css";
 
 function BarcodeScanner() {
   const videoRef = useRef(null);
@@ -12,12 +13,15 @@ function BarcodeScanner() {
   const [barcode, setBarcode] = useState("");
   const [product, setProduct] = useState(null);
   const [error, setError] = useState("");
-
-  // MRP states
   const [mrpInput, setMrpInput] = useState("");
   const [savingMRP, setSavingMRP] = useState(false);
 
-  // Start barcode scanning
+  useEffect(() => {
+    return () => {
+      controlsRef.current?.stop();
+    };
+  }, []);
+
   const startScanning = async () => {
     setError("");
     setProduct(null);
@@ -31,12 +35,11 @@ function BarcodeScanner() {
       const controls = await reader.decodeFromVideoDevice(
         undefined,
         videoRef.current,
-        async (result, scanError, controls) => {
+        async (result) => {
           if (result && !processingRef.current) {
             processingRef.current = true;
 
             const scannedBarcode = result.getText();
-
             setBarcode(scannedBarcode);
 
             controls.stop();
@@ -69,16 +72,18 @@ function BarcodeScanner() {
     }
   };
 
-  // Stop barcode scanning
   const stopScanning = () => {
     controlsRef.current?.stop();
     controlsRef.current = null;
     setIsScanning(false);
   };
 
-  // Save MRP to MongoDB
   const saveMRP = async () => {
-    if (!mrpInput || !Number.isFinite(Number(mrpInput)) || Number(mrpInput) <= 0) {
+    if (
+      !mrpInput ||
+      !Number.isFinite(Number(mrpInput)) ||
+      Number(mrpInput) <= 0
+    ) {
       setError("Please enter a valid MRP");
       return;
     }
@@ -91,9 +96,7 @@ function BarcodeScanner() {
         `${import.meta.env.VITE_API_URL}/products/${encodeURIComponent(
           barcode
         )}/mrp`,
-        {
-          mrp: Number(mrpInput),
-        }
+        { mrp: Number(mrpInput) }
       );
 
       setProduct(response.data.product);
@@ -108,104 +111,175 @@ function BarcodeScanner() {
   };
 
   return (
-    <div style={{ maxWidth: "500px", margin: "30px auto", padding: "20px" }}>
-      <h2>Barcode Scanner</h2>
+    <div className="scanner-page">
+      <div className="scanner-heading">
+        <div>
+          <span className="scanner-eyebrow">BILLING MANAGEMENT</span>
+          <h2>Barcode Scanner</h2>
+          <p>Scan a product barcode to retrieve its details.</p>
+        </div>
 
-      <video
-        ref={videoRef}
-        style={{ width: "100%", borderRadius: "10px" }}
-        autoPlay
-        muted
-        playsInline
-      />
+        <div className="scanner-heading-icon">
+          <span>▥</span>
+        </div>
+      </div>
 
-      {!isScanning ? (
-        <button onClick={startScanning}>
-          Start Barcode Scan
-        </button>
-      ) : (
-        <button onClick={stopScanning}>
-          Stop Scanning
-        </button>
-      )}
+      <div className="scanner-card">
+        <div className="scanner-card-header">
+          <div>
+            <h3>Scan Product</h3>
+            <p>Position the barcode inside the camera frame.</p>
+          </div>
 
-      {barcode && <p>Barcode: {barcode}</p>}
+          <span className={`scanner-status ${isScanning ? "active" : ""}`}>
+            <span className="status-dot"></span>
+            {isScanning ? "Scanning" : "Ready"}
+          </span>
+        </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        <div className={`camera-container ${isScanning ? "camera-active" : ""}`}>
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+          />
 
-      {product && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Product Details</h3>
-
-          {product.imageUrl && (
-            <img
-              src={product.imageUrl}
-              alt={product.productName}
-              style={{ width: "150px" }}
-            />
-          )}
-
-          <p>
-            <strong>Name:</strong>{" "}
-            {product.productName || "Not available"}
-          </p>
-
-          <p>
-            <strong>Brand:</strong>{" "}
-            {product.brand || "Not available"}
-          </p>
-
-          <p>
-            <strong>Quantity:</strong>{" "}
-            {product.quantity || "Not available"}
-          </p>
-
-          {/* MRP Display or Entry */}
-          {product.mrp !== null && product.mrp !== undefined ? (
-            <p>
-              <strong>MRP:</strong> ₹{product.mrp}
-            </p>
-          ) : (
-            <div style={{ marginTop: "15px" }}>
-              <p>
-                <strong>MRP is not available.</strong>
-              </p>
-
-              <label htmlFor="mrp">
-                Enter MRP printed on product package:
-              </label>
-
-              <input
-                id="mrp"
-                type="number"
-                placeholder="Enter MRP"
-                min="0.01"
-                step="0.01"
-                value={mrpInput}
-                onChange={(e) => setMrpInput(e.target.value)}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  padding: "10px",
-                  marginTop: "8px",
-                  marginBottom: "10px",
-                  boxSizing: "border-box",
-                }}
-              />
-
-              <button
-                onClick={saveMRP}
-                disabled={
-                  savingMRP ||
-                  !mrpInput ||
-                  !Number.isFinite(Number(mrpInput)) ||
-                  Number(mrpInput) <= 0
-                }
-              >
-                {savingMRP ? "Saving..." : "Save MRP"}
-              </button>
+          {!isScanning && (
+            <div className="camera-placeholder">
+              <div className="camera-icon">▦</div>
+              <h4>Camera is ready</h4>
+              <p>Start scanning to open your camera.</p>
             </div>
           )}
+
+          {isScanning && (
+            <div className="scan-overlay">
+              <div className="scan-frame">
+                <span className="corner top-left"></span>
+                <span className="corner top-right"></span>
+                <span className="corner bottom-left"></span>
+                <span className="corner bottom-right"></span>
+                <div className="scan-line"></div>
+              </div>
+              <span className="scan-hint">Align barcode within the frame</span>
+            </div>
+          )}
+        </div>
+
+        <div className="scanner-actions">
+          {!isScanning ? (
+            <button className="scan-button" onClick={startScanning}>
+              <span>▦</span> Start Barcode Scan
+            </button>
+          ) : (
+            <button className="stop-button" onClick={stopScanning}>
+              Stop Scanning
+            </button>
+          )}
+        </div>
+
+        {barcode && (
+          <div className="barcode-result">
+            <span className="barcode-result-icon">✓</span>
+            <div>
+              <small>SCANNED BARCODE</small>
+              <strong>{barcode}</strong>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="scanner-error">
+            <span>!</span>
+            {error}
+          </div>
+        )}
+      </div>
+
+      {product && (
+        <div className="product-card">
+          <div className="product-card-header">
+            <div>
+              <span className="scanner-eyebrow">PRODUCT INFORMATION</span>
+              <h3>Product Details</h3>
+            </div>
+            <span className="product-found">Product Found</span>
+          </div>
+
+          <div className="product-details">
+            <div className="product-image">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.productName || "Product"}
+                />
+              ) : (
+                <span>▧</span>
+              )}
+            </div>
+
+            <div className="product-info">
+              <h4>{product.productName || "Unknown Product"}</h4>
+
+              <p>
+                <span>Brand</span>
+                <strong>{product.brand || "Not available"}</strong>
+              </p>
+
+              <p>
+                <span>Quantity</span>
+                <strong>{product.quantity || "Not available"}</strong>
+              </p>
+
+              <p>
+                <span>Barcode</span>
+                <strong>{barcode}</strong>
+              </p>
+            </div>
+          </div>
+
+          <div className="mrp-section">
+            {product.mrp !== null && product.mrp !== undefined ? (
+              <div className="mrp-display">
+                <div>
+                  <span>PRODUCT MRP</span>
+                  <h2>₹{Number(product.mrp).toFixed(2)}</h2>
+                </div>
+                <span className="mrp-saved">✓ Saved</span>
+              </div>
+            ) : (
+              <div className="mrp-entry">
+                <div>
+                  <h4>MRP not available</h4>
+                  <p>Enter the MRP printed on the product package.</p>
+                </div>
+
+                <label htmlFor="mrp">Product MRP (₹)</label>
+                <input
+                  id="mrp"
+                  type="number"
+                  placeholder="Enter product MRP"
+                  min="0.01"
+                  step="0.01"
+                  value={mrpInput}
+                  onChange={(e) => setMrpInput(e.target.value)}
+                />
+
+                <button
+                  onClick={saveMRP}
+                  disabled={
+                    savingMRP ||
+                    !mrpInput ||
+                    !Number.isFinite(Number(mrpInput)) ||
+                    Number(mrpInput) <= 0
+                  }
+                >
+                  {savingMRP ? "Saving MRP..." : "Save MRP"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
